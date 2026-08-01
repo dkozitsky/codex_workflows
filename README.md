@@ -1,21 +1,15 @@
-# Codex Project Workflow
+<h3 align="center"><big><big><strong>SIMPLE&emsp;&emsp;───&emsp;&emsp;EASY&emsp;&emsp;───&emsp;&emsp;EFFICIENT</strong></big></big></h3>
+<p align="center"><small>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(to use)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(to install)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(token consumption)</small></p>
+<hr>
 
-A project-scoped Codex workflow that configures **GPT-5.6 Sol as the main orchestrator** and **GPT-5.6 Luna as the default subagent**.
+A project-scoped Codex workflows that configures **GPT-5.6 Sol as the main orchestrator** and **GPT-5.6 Luna as the default subagent**.
 
-The workflow is designed to reduce unnecessary token usage and manage long-running implementation plans across multiple Codex sessions. It includes bounded subagent context, executor–tester repair loops, worker lifecycle management, project-state tracking, protected documentation, and an End-of-Session handoff.
+The workflows is designed to optimize token usage and manage long-running implementation plans across multiple Codex sessions. It includes bounded subagent context, executor–tester repair loops, worker lifecycle management, project-state tracking, protected documentation.
+
+> note : For lightweight tasks, it won’t overdo things. The light route is the default in this workflow.
 
 > **Note:** The workflow is installed per project. Install it again when starting a new project.
 
-## Repository contents
-
-* `workflows_setup_guide.md` — Installation instructions read and executed by Codex.
-* `AGENTS.md` — Main-agent workflow and project rules.
-* `heavy_route.md` — Multi-agent workflow for large implementation plans.
-* `medium_route.md` — Full project workflow without subagents.
-* `executor_luna.toml` — Default Luna implementation subagent.
-* `executor_sol.toml` — Sol executor for difficult or highly cross-cutting work.
-* `tester.toml` — Independent testing and defect-analysis subagent.
-* `doc-writer.toml` — Documentation subagent for verified implementation results.
 
 ## Installation
 
@@ -50,14 +44,6 @@ Launch Codex CLI or the Codex app from your project directory and send:
 Read `codex_workflows/workflows_setup_guide.md` and perform the complete installation process described in it.
 ```
 
-Codex will automatically:
-
-* install the project-level `AGENTS.md`;
-* create the workflow and project-documentation structure under `agent_docs/`;
-* install `executor_luna`, `executor_sol`, `tester`, and `doc-writer` under `~/.codex/agents/`;
-* configure the workflow for the current project;
-* ask the optional configuration questions described below.
-
 Done! At this point, the basic installation process is complete. Codex will ask some additional optional advanced questions below to further optimize the current project.
 
 ## Configuration Questions
@@ -74,8 +60,13 @@ You can describe requirements such as:
 - Do not change public APIs without prior approval;
 - Prioritize C/C++ and limit dynamic allocation;
 - Always run relevant tests after modifications.
+- etc.
 
-### 2. Power Configuration
+### 2. Frontend Project Profile (optional)
+
+The default workflow is designed primarily for backend work (Very heavily focused on testing). If the current project is a frontend project, Codex will ask whether you want to minimize testing, modularization, or similar requirements for the project. 
+
+### 3. Power Configuration
 
 The default workflow is designed to save tokens for the ChatGPT Plus plan. Codex will ask if you want to enable each advanced option individually.
 
@@ -86,15 +77,16 @@ The default workflow is designed to save tokens for the ChatGPT Plus plan. Codex
 
 ### Restart codex after installation
 
-## What is a workflow route?
+### What is a workflow route?
 
 There are 3 work routes:
-- Light route: Default, for light and medium tasks. Original Codex, minimal context, no need for further explanation.
+- Light route: Default route, for light and medium tasks. Minimal context, no subagents, no workflow.
 - Heavy route: For the deployment of heavy plans and tasks. The main agent will coordinate the workers. Sol medium -> Sol xhigh is recommended. 
-- Medium route: Coordinating multiple sub-agents for a medium-sized task can sometimes cost more tokens and be slower than letting the main agent perform the work independently. Sol medium is recommended.
+- Medium route: Coordinating multiple sub-agents for a medium-sized task can sometimes cost more tokens and be slower than letting the main agent perform the work independently. Sol medium is recommended.  
 
-### How to use 
-- Normally, for simple work or general Q&A, you don't need to do anything.
+## HOW TO USE
+
+- Normally, for simple work or general Q&A, you don't need to do anything. `light route` is the default route.
 - When starting or continuing a plan in progress, just tell Codex in the prompt: "
 
 ```text
@@ -105,15 +97,15 @@ Codex will switch to a full workflow with a medium/heavy route.  Codex will not 
 - When you want to end current session, clean up and update documents, commit, etc., tell Codex: 
 
 ```text
-end this session. [tell Codex more details if need]".
+end this session. [tell Codex more details if necessary]".
 ```
-`End-of-Session` handoff will be performed (see AGENTS.md for details about the handoff). This process updates the main document framework so that subsequent sessions can seamlessly continue the ongoing work.
+`End-of-Session` handoff will be performed (see `heavy_rote.md`/ `medium_route.md` for details about the handoff). This process updates the main document framework so that subsequent sessions can seamlessly continue the ongoing work.
 
 You can still continue the session after that message if needed. 
 
 ### Customize the workflow
 
-- Customize the End-of-Session handoff to suit your needs in AGENTS.md
-- Add the custom subagents you want in ~/.codex/agents
+- Customize the End-of-Session handoff to suit your needs in `agent_docs/workflows/heavy_route.md` and `agent_docs/workflows/medium_route.md`.
+- Add the custom subagents you want in `~/.codex/agents`
 
 .... 

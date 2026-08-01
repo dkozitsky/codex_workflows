@@ -1,92 +1,144 @@
 # Workflow Setup Guide
 
-Set up the custom Codex workflow for the current project. Do not inspect or modify project source-code files during this task.
+This is a task to set up a custom Codex workflow for the current project. Do not inspect or edit the project's source code files during this process.
 
-The installation files are located in the downloaded `codex_workflows` directory. Read all `.md` and `.toml` files in that directory before starting.
+If the directory has another name or location, use its actual path instead.
 
-Typical locations:
+## Path handling
 
-* Ubuntu and macOS: `codex_workflows/`
-* Windows PowerShell: `codex_workflows\`
+Paths in this workflow use `/` as a platform-neutral separator.
 
-If the directory has another name or location, use its actual path.
+When executing filesystem operations, automatically adapt paths and commands to the current operating system and shell.
 
-## Path conventions
+For example:
 
-Resolve all project-relative paths from the root of the current project.
+```text
+agent_docs/workflows/heavy_route.md
+```
 
-Examples:
+represents the same logical location regardless of platform.
 
-* Ubuntu and macOS: `agent_docs/workflows/heavy_route.md`
-* Windows: `agent_docs\workflows\heavy_route.md`
+For the Codex user-agent directory:
+
+```text
+~/.codex/agents/
+```
+
+Resolve it to the appropriate user-home path on the current system.
+
+Do not treat the path separator shown in this guide as a literal requirement.
 
 ## 1. Install the default workflow
 
-### 1.1 Install the main-agent instructions
+### 1.1 Main-agent instructions
 
-Copy `AGENTS.md` from the installation directory to the root of the current project.
+Copy:
 
-If the project already contains an `AGENTS.md` file, do not overwrite it automatically. Ask the user whether to:
+```text
+codex_workflows/AGENTS.md
+```
 
-* replace it;
-* merge the workflow instructions into it;
-* or cancel that part of the installation.
+to:
 
-### 1.2 Create the project documentation structure
+```text
+AGENTS.md
+```
 
-Create these directories if they do not already exist:
+in the current project root.
+
+If `AGENTS.md` already exists, do not overwrite it automatically. Ask the user whether to replace it, merge the workflow instructions into it, or skip this step.
+
+### 1.2 Project documentation
+
+Create:
 
 ```text
 agent_docs/
 agent_docs/workflows/
 ```
 
-Initialize the project documents required by `AGENTS.md` under `agent_docs/`.
+Initialize the main project documents required by `AGENTS.md` inside:
+
+```text
+agent_docs/
+```
 
 Do not overwrite existing project documents without explicit user approval.
 
-### 1.3 Install the workflow routes
+### 1.3 Workflow routes
 
 Copy:
 
 ```text
-heavy_route.md  → agent_docs/workflows/heavy_route.md
-medium_route.md → agent_docs/workflows/medium_route.md
+codex_workflows/heavy_route.md
+→ agent_docs/workflows/heavy_route.md
+
+codex_workflows/medium_route.md
+→ agent_docs/workflows/medium_route.md
 ```
 
-If either destination file already exists, ask the user before replacing it.
+If a destination file already exists, ask before replacing it.
 
-### 1.4 Install the custom subagents
+### 1.4 Custom subagents
 
 Create the Codex user-agent directory if it does not already exist:
 
-* Ubuntu and macOS: `~/.codex/agents/`
-* Windows PowerShell: `$HOME\.codex\agents\`
+```text
+~/.codex/agents/
+```
 
-Copy the following files into that directory:
+Copy these agent definitions into it:
 
 ```text
 doc-writer.toml
 tester.toml
 executor_luna.toml
 executor_sol.toml
+explorer.toml
 ```
 
 Do not overwrite an existing agent definition without explicit user approval.
 
-### 1.5 Verify the installation
+### 1.5 Codex multi-agent configuration
+
+Check the Codex configuration file at:
+
+```text
+~/.codex/config.toml
+```
+
+If the environment uses `/.codex` as the Codex directory, check:
+
+```text
+/.codex/config.toml
+```
+
+Add the following configuration if it is not already present. If the
+`[features.multi_agent_v2]` section already exists, add only the missing keys
+and preserve its existing values:
+
+```toml
+[features.multi_agent_v2]
+hide_spawn_agent_metadata = false
+tool_namespace = "agents"
+```
+
+### 1.6 Verify installation
 
 Verify that:
 
-* `AGENTS.md` exists in the project root;
-* the required project documents exist under `agent_docs/`;
-* `heavy_route.md` and `medium_route.md` exist under `agent_docs/workflows/`;
-* all four agent definitions exist under the Codex user-agent directory;
-* no unrelated project source files were modified.
+* `AGENTS.md` exists in the project root.
+* Required project documents exist under `agent_docs/`.
+* `heavy_route.md` and `medium_route.md` exist under `agent_docs/workflows/`.
+* All four custom agent definitions exist under the Codex user-agent directory.
+* No unrelated project source files were modified.
 
-Report the installed files, skipped files, conflicts, and any unresolved issues.
+Report installed files, skipped files, conflicts, and unresolved issues.
 
-## 2. Configure the project
+## 2. Configure the workflow
+
+Read all `.md` and `.toml` files in the `codex_workflows/` after installation. 
+All the changes below will apply to the newly installed files, not the files inside the original `codex_workflows/` folder.
 
 Ask the following questions one at a time.
 
@@ -96,11 +148,29 @@ Ask:
 
 > Would you like to define the work style and core design principles for this project?
 
-Explain that this step is optional and provide a few relevant examples.
+This is optional.
 
-When the user provides instructions, add them under `## Core Design Principles` in the project-level `AGENTS.md`.
+Provide a few examples if useful, such as modularity, dependency limits, API stability, preferred languages, testing requirements, or project-specific constraints.
 
-Do not remove existing project-specific instructions.
+If the user provides instructions, add them under:
+
+```text
+## Core Design Principles
+```
+
+in the project-level `AGENTS.md`.
+
+Preserve existing project-specific instructions.
+
+### Frontend project profile
+
+Explain that the default workflow is designed primarily for backend work (Very heavily focused on testing). For a frontend project, ask:
+
+> Would you like to minimize testing, modularization, or similar requirements for this frontend project?
+
+This is optional.
+
+If the user agrees, edit the `## Core Design Principles` session in `AGENTS.md` to meet user requirements. If the user does not specify details, adjust automatically.
 
 ### Power profile
 
@@ -113,7 +183,9 @@ Ask whether the user wants to enable any of these options:
 3. Increase the default subagent report limits beyond 150 words for events and 250 words for final reports.
 4. Allow more than two evidence-free retries before replacing a stuck or blocked worker.
 
-Explain that stronger settings may consume more tokens. Ask the user to select individual options; do not enable every option based only on a general confirmation.
+Explain that stronger settings may increase token usage.
+
+Ask the user to select individual options. Do not enable every option from a general “yes.”
 
 If the user declines, keep the default configuration.
 
@@ -124,18 +196,13 @@ Apply selected changes as follows:
 
   * `~/.codex/agents/executor_luna.toml`
   * `~/.codex/agents/tester.toml`
-* **Option 3:** update the Event and Final report limits in the relevant agent TOML files.
+* **Option 3:** update the Event and Final report limits in the relevant agent `.toml` files.
 * **Option 4:** update `## Thread Lifecycle and Waiting` in `agent_docs/workflows/heavy_route.md`.
 
-Use the equivalent `$HOME\.codex\agents\` paths on Windows.
-
-After applying the changes, verify and report the final values.
+After applying the selected changes, verify and report the final values.
 
 ## 3. Finish the installation
 
 Report that the workflow installation is complete and instruct the user to restart Codex so the custom agent definitions are reloaded.
 
-Do not automatically delete the downloaded `codex_workflows` directory.
-
-Ask whether the user wants it removed. Delete it only if the user confirms.
-
+Automatically delete the downloaded `codex_workflows` directory and its contents after installation, then report the deletion to user as u did it based on this guide.

@@ -25,8 +25,9 @@ Do not write status documents for short-lived packages. Write `agent_docs/latest
 
 ## Delegation
 
-Use the fewest workers needed:
+Use a proportionate number of workers based on task scope, complexity, and opportunities for meaningful delegation:
 
+- `explorer`: read-only investigation of assigned code, tools, applications, libraries, or configuration; reports findings to the main agent.
 - `executor_luna`: default production implementation.
 - `executor_sol`: only for exceptionally difficult, broad, cross-cutting work that cannot be narrowed effectively; never more than one.
 - `tester`: focused independent tests and failure analysis.
@@ -36,12 +37,14 @@ Every role-agent spawn must use `fork_turns="none"`. The initial task capsule mu
 
 - documents to read;
 - source files, tests, interfaces, or call sites to inspect;
-- the expected edit surface;
+- the expected edit surface, or investigation scope for read-only roles;
 - important protected or out-of-scope areas.
 
-The task capsule defines the worker's strict context, working scope, acceptance criteria, and edit surface; the main agent owns all four. Do not repeat the conversation, stable role rules, project summaries, recorded requirements, or exhaustive test matrices in a capsule. Workers may inspect adjacent dependencies only to diagnose a blocker, but must not expand their edit scope themselves. They report the blocker, concrete evidence, and proposed files to the main agent, then wait for a re-coordinated next iteration that explicitly amends scope and ownership. The main agent is responsible for resolving overlap before issuing that iteration.
+The task capsule defines the worker's strict context, working scope, acceptance criteria, and assigned surface; the main agent owns all four. Do not repeat the conversation, stable role rules, project summaries, recorded requirements, or exhaustive test matrices in a capsule. Workers may inspect adjacent dependencies only to diagnose a blocker, but must not expand their edit scope themselves. They report the blocker, concrete evidence, and proposed files to the main agent, then wait for a re-coordinated next iteration that explicitly amends scope and ownership. The main agent is responsible for resolving overlap before issuing that iteration.
 
-Start only `executor_luna` initially. Spawn the tester only after the executor hands off completed implementation with its smallest relevant self-check, unless parallel test research has clear independent value. Delegate documentation after verification and only for durable architecture, structure, workflow, public behavior, decisions, or usage changes. Split executor packages only when modules and files are genuinely independent; do not maximize concurrency for its own sake. This worker-concurrency restriction does not prohibit local batching of independent tool calls inside the active agent thread.
+Use `explorer` when the main agent needs a bounded investigation of peripheral or unfamiliar code, tools, applications, libraries, or configuration. Core project documents, core modules, and components central to the current work must still be read directly by the main agent.
+
+Start only `executor_luna` initially for production implementation. Spawn the tester only after the executor hands off completed implementation with its smallest relevant self-check, unless parallel test research has clear independent value. Delegate documentation after verification and only for durable architecture, structure, workflow, public behavior, decisions, or usage changes. Split executor packages only when modules and files are genuinely independent; do not maximize concurrency for its own sake. This worker-concurrency restriction does not prohibit local batching of independent tool calls inside the active agent thread.
 
 Assignments and follow-ups must be deltas, normally no more than 120 words. Do not resend full test matrices, recorded requirements, old logs, the initial capsule, or the conversation. A follow-up should contain only work-package ID, iteration, changed files/state, new evidence, affected acceptance criterion, and next action.
 
@@ -88,7 +91,7 @@ Keep changes within plan boundaries. Avoid unrelated refactors, hard-coded confi
 
 Delegate durable documentation only when architecture, structure, workflow, public behavior, significant decisions, or module usage changes. Provide verified facts and exact target files.
 
-At the end of each shift, report back in a simple table format: which workers(specify names: executor_luna, executor_sol, tester, doc-writer) were called, and number of times each worker was called. 
+At the end of each shift, report back in a simple table format: which workers(specify names: explorer, executor_luna, executor_sol, tester, doc-writer) were called, and number of times each worker was called. 
 
 ## Blockers
 
@@ -100,14 +103,15 @@ Run this section only when the user directly commands the exact phrase `end this
 
 1. Collect checkpoints only from running or incomplete workers.
 2. Confirm verification occurred after the last relevant code/test change; do not rerun solely because the session is ending.
-3. If a doc-writer thread already exists, it may perform compact read-only integrity checks; do not spawn one solely for status checks.
-4. Collect concise final status, diff statistics, whitespace/error checks, and targeted changed-file review in one bounded read-only batch when practical. Keep status reconciliation, documentation writes, Git staging, and the commit sequential.
-5. Empty `project_progress.md` content if the plan is complete, otherwise , reconcile it with the final status, verification evidence, blockers, and next action if its recorded state has changed.
-6. Replace `latest_session_work.md` once with changes, verification, pending work, and next entry point.
-7. Update durable docs only when warranted and `project_diary.md` only for significant decisions or lessons.
-8. If meaningful project files changed, run `git add .` and commit with `git commit -m "[auto commit] <summary>"`.
+3. Complete warranted durable documentation first.  If a doc-writer thread already exists, it may perform compact read-only integrity checks; do not spawn one solely for status checks.  Update `project_diary.md` only for significant decisions or lessons.
+4. If meaningful project files changed, spawn or reuse one `explorer` with `fork_turns="none"` for a bounded `SESSION-CLOSURE-AUDIT`.  The explorer performs read-only repository closure checks and returns directly to the main agent; it must not edit files, Git state, `project_progress.md`, or `latest_session_work.md`.
+5. Scope the explorer audit to changed-file counts, insertion/deletion totals, whitespace/error checks, the largest unignored file, material generated/ignored payloads, unexpected changed surfaces, and blockers.  It may confirm existing verification evidence and report paths but must not rerun tests solely for closure or review central implementation correctness.
+6. Require a compact explorer final, normally no more than 150 words, containing: `status`, `changed_files`, `insertions`, `deletions`, `largest_unignored_file`, `generated_payloads`, `diff_check`, `unexpected_scope`, and `blockers`.  Do not request full file listings unless the explorer finds an anomaly.
+7. The main agent consumes that audit without repeating the same repository-wide status, diff-stat, or large-file scans unless the explorer reports a defect, evidence conflicts, or later unexpected changes invalidate the audit.  The main agent still performs targeted critical review and owns the final scope decision.
+8. Empty `project_progress.md` content if the plan is complete; otherwise reconcile it with final status, verification evidence, blockers, and next action when its recorded state changed.  Replace `latest_session_work.md` once with changes, verification, pending work, and the next entry point.  These two files remain exclusively under main-agent authority.
+9. After the main-owned status writes, run only compact checks needed to cover those predictable edits.  Escalate to broader inspection only on failure or unexpected scope.
+10. If meaningful project files changed, run `git add .`, commit quietly with `git commit --quiet -m "[auto commit] <summary>"`, and report only the one-line commit identity plus any remaining dirty state.
 
-If no meaningful project files changed, no need to refresh `latest_session_work.md`.
+If no meaningful project files changed, do not spawn the closure explorer and no need to refresh `latest_session_work.md`.
 
 Every completed session should leave honest status, bounded changes, current verification, preserved user work, and a clear continuation point.
-
